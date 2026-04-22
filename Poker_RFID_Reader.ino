@@ -1,7 +1,6 @@
 #include <SPI.h>
 #include <MFRC522.h>
 #include <NimBLEDevice.h>
-#include <esp_pm.h> // For automatic light sleep
 #include <string>   // For std::string
 
 // Define pins for RC522 modules
@@ -63,22 +62,13 @@ void setup() {
   // Initialize battery pin
   pinMode(BATTERY_PIN, INPUT);
 
-  // Try automatic light sleep
-  esp_pm_config_t pm_config = {
-    .max_freq_mhz = 80,
-    .min_freq_mhz = 10,
-    .light_sleep_enable = true
-  };
-  esp_err_t pm_error = esp_pm_configure(&pm_config);
-  Serial.printf("Light Sleep: %s\n", pm_error == ESP_OK ? "Enabled" : "Failed");
-
   // Delay to ensure FreeRTOS stability
   delay(100);
   Serial.printf("Free Heap before NimBLE: %u B\n", ESP.getFreeHeap());
 
-  // Initialize NimBLE
-  NimBLEDevice::setOwnAddrType(BLE_OWN_ADDR_PUBLIC); // Public address
+  // Initialize NimBLE (init must come before any other NimBLE calls)
   NimBLEDevice::init("RFID Scanner");
+  NimBLEDevice::setOwnAddrType(BLE_OWN_ADDR_PUBLIC); // Public address
   NimBLEDevice::setPower(ESP_PWR_LVL_P9); // +9dBm TX power
   Serial.println("NimBLE Initialized");
   Serial.printf("Free Heap after NimBLE init: %u B\n", ESP.getFreeHeap());
