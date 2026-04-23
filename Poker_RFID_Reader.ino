@@ -111,9 +111,12 @@ void loop() {
     powerUpRFID();
     uidDetected = false;
     for (int i = 0; i < 5; i++) {
+      mfrc522_1.PCD_Init(); // Re-init to clear any lingering SPI/RF state
       checkReader(mfrc522_1, "R1");
+      delay(20); // Allow RF field to settle before switching to reader 2
+      mfrc522_2.PCD_Init(); // Re-init to clear any lingering SPI/RF state
       checkReader(mfrc522_2, "R2");
-      if (i != 4) delay(10);
+      if (i != 4) delay(20);
     }
     powerDownRFID();
     if (uidDetected && deviceConnected) {
@@ -149,6 +152,7 @@ void checkReader(MFRC522 &reader, const char* readerName) {
   }
   uidDetected = true;
   reader.PICC_HaltA();
+  reader.PCD_StopCrypto1(); // Clear crypto state so the reader is ready for the next card
 }
 
 void sendBatteryPercentage() {
